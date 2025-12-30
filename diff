@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Golden Ratio Room - Three.js</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+  // -----------------------------
+  // Golden Ratio Constants
+  // -----------------------------
+  const PHI = 1.618;
+
+  // Room proportions (H x W x D)
+  const roomHeight = 3;                 // 1
+  const roomWidth  = roomHeight * PHI;  // 1.6
+  const roomDepth  = roomWidth  * PHI;  // 2.56
+
+  // Color ratio 60 / 30 / 10
+  const colors = {
+    primary: 0xf2efe9,   // 60% - walls (warm neutral)
+    secondary: 0xc7b9a6, // 30% - floor
+    accent: 0x8a6f4d     // 10% - accent wall / objects
+  };
+
+  // -----------------------------
+  // Scene Setup
+  // -----------------------------
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xeeeeee);
+
+  const camera = new THREE.PerspectiveCamera(
+    60,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    100
+  );
+
+  camera.position.set(
+    roomWidth / PHI,
+    roomHeight / PHI,
+    roomDepth * 1.2
+  );
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  document.body.appendChild(renderer.domElement);
+
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.target.set(0, roomHeight / 2, 0);
+  controls.enableDamping = true;
+
+  // -----------------------------
+  // Lighting (Golden ratio spacing)
+  // -----------------------------
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  scene.add(ambientLight);
+
+  const mainLight = new THREE.DirectionalLight(0xffffff, 0.6);
+  mainLight.position.set(
+    roomWidth / PHI,
+    roomHeight * PHI,
+    roomDepth / PHI
+  );
+  scene.add(mainLight);
+
+  // -----------------------------
+  // Materials
+  // -----------------------------
+  const wallMat = new THREE.MeshStandardMaterial({ color: colors.primary });
+  const floorMat = new THREE.MeshStandardMaterial({ color: colors.secondary });
+  const accentMat = new THREE.MeshStandardMaterial({ color: colors.accent });
+
+  // -----------------------------
+  // Room Geometry
+  // -----------------------------
+
+  // Floor
+  const floor = new THREE.Mesh(
+    new THREE.BoxGeometry(roomWidth, 0.05, roomDepth),
+    floorMat
+  );
+  floor.position.y = 0;
+  scene.add(floor);
+
+  // Ceiling
+  const ceiling = new THREE.Mesh(
+    new THREE.BoxGeometry(roomWidth, 0.05, roomDepth),
+    wallMat
+  );
+  ceiling.position.y = roomHeight;
+  scene.add(ceiling);
+
+  // Walls
+  const wallThickness = 0.05;
+
+  const backWall = new THREE.Mesh(
+    new THREE.BoxGeometry(roomWidth, roomHeight, wallThickness),
+    accentMat // Accent wall (10%)
+  );
+  backWall.position.set(0, roomHeight / 2, -roomDepth / 2);
+  scene.add(backWall);
+
+  const frontWall = new THREE.Mesh(
+    new THREE.BoxGeometry(roomWidth, roomHeight, wallThickness),
+    wallMat
+  );
+  frontWall.position.set(0, roomHeight / 2, roomDepth / 2);
+  scene.add(frontWall);
+
+  const leftWall = new THREE.Mesh(
+    new THREE.BoxGeometry(wallThickness, roomHeight, roomDepth),
+    wallMat
+  );
+  leftWall.position.set(-roomWidth / 2, roomHeight / 2, 0);
+  scene.add(leftWall);
+
+  const rightWall = new THREE.Mesh(
+    new THREE.BoxGeometry(wallThickness, roomHeight, roomDepth),
+    wallMat
+  );
+  rightWall.position.set(roomWidth / 2, roomHeight / 2, 0);
+  scene.add(rightWall);
+
+  // -----------------------------
+  // Golden Ratio Reference Object
+  // -----------------------------
+  const goldenBlock = new THREE.Mesh(
+    new THREE.BoxGeometry(
+      roomWidth / PHI,
+      roomHeight / PHI,
+      roomDepth / PHI
+    ),
+    new THREE.MeshStandardMaterial({
+      color: colors.accent,
+      metalness: 0.1,
+      roughness: 0.6
+    })
+  );
+
+  goldenBlock.position.set(
+    -roomWidth / PHI / 2,
+    roomHeight / PHI / 2,
+    roomDepth / PHI / 2
+  );
+  scene.add(goldenBlock);
+
+  // -----------------------------
+  // Render Loop
+  // -----------------------------
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // -----------------------------
+  // Resize Handling
+  // -----------------------------
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+</script>
+</body>
+</html>
